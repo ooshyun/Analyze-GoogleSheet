@@ -1,5 +1,14 @@
 Data Analyzing through Google Sheet
 ------------------------------------------------
+*First of all, making the src/config.py to set the setup
+- Example of src/config.py
+    ```python
+    GOOGLE_CREDENTIAL_KEY_PATH = # the path of the google credential file
+    DATA_NAME = # names for making the final data
+    FILE_NAME = # the names of google files  for making the final data
+    SHEET_NAME = # the names of sheets, and it match the index with FILE_NAME
+    RESULT_NAME = # the name of result
+    ```
 
 1. Tranlate Google Sheet to data storage(ex. pickle or json)
     1. Download Google Sheet data
