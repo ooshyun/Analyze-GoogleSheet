@@ -1,0 +1,9 @@
+**
+!/src
+!*.py
+!*.md
+!*.txt
+!.gitignore
+!data/
+!key/
+config.py
