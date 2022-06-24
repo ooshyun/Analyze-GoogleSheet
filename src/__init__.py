@@ -7,9 +7,4 @@ from .util import (
     extract_index_key_value,
 )
 
-from .config import (
-    DATA_NAME,
-    FILE_NAME,
-    SHEET_NAME,
-    RESULT_NAME
-)
+from .config import DATA_NAME, FILE_NAME, SHEET_NAME, RESULT_NAME

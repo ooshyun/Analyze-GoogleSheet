@@ -2,6 +2,7 @@ import copy
 import json
 import pickle
 import gspread
+import pandas
 from .config import GOOGLE_CREDENTIAL_KEY_PATH
 from typing import (
     List,
@@ -15,11 +16,12 @@ _GOOGLE_CREDENTIAL_KEY_PATH = (
 )
 ANSWER_EMPTY_LEN = 0
 
+
 def _exclude_empty_space(data: list):
     _data = data.copy()
     data_no_empty = []
     for d in _data:
-        if d != '':
+        if d != "":
             data_no_empty.append(d)
     return data_no_empty
 
@@ -41,8 +43,8 @@ def _convert_info_to_list(key_list: list, value_list: list) -> List[dict]:
                 if key in data_list[id_val].keys():
                     data_list[id_val][key].append(val)
                 else:
-                    data_list[id_val][key] = [val] 
-    return data_list   
+                    data_list[id_val][key] = [val]
+    return data_list
 
 
 def _filter_empty(data_list: List[dict], key_list: list) -> List[dict]:
@@ -54,28 +56,30 @@ def _filter_empty(data_list: List[dict], key_list: list) -> List[dict]:
             if key_loc > 0:
                 key = key_list[key_loc]
                 for id_data_list in range(len(_data_list)):
-                    if '' in _data_list[id_data_list][key]:
-                        data_no_empty = _exclude_empty_space(_data_list[id_data_list][key])
+                    if "" in _data_list[id_data_list][key]:
+                        data_no_empty = _exclude_empty_space(
+                            _data_list[id_data_list][key]
+                        )
                         if len(data_no_empty) == 0:
-                            _data_list[id_data_list][key] = ['No Answer']
+                            _data_list[id_data_list][key] = ["No Answer"]
                         else:
                             _data_list[id_data_list][key] = data_no_empty
     return _data_list
 
 
 def _encode_list2dict(data_list: List[list]):
-    question_list = data_list[0].copy()    # Main question
+    question_list = data_list[0].copy()  # Main question
     # category_list = data_list[1].copy()  # Sub category
-    customer_responase_list = data_list[2:].copy() # Customer response
-    
+    customer_responase_list = data_list[2:].copy()  # Customer response
+
     # convert information to the list of dict
-    data_result = _convert_info_to_list(key_list = question_list, 
-                                    value_list = customer_responase_list)
+    data_result = _convert_info_to_list(
+        key_list=question_list, value_list=customer_responase_list
+    )
 
     # remove empty values in dictionry
-    data_result = _filter_empty(data_list = data_result, 
-                                key_list = question_list)
-    
+    data_result = _filter_empty(data_list=data_result, key_list=question_list)
+
     del data_list, question_list, customer_responase_list
 
     return data_result
@@ -86,13 +90,12 @@ def export_google_sheet(filename: str, sheetname: str):
     gc = gspread.service_account(filename=GOOGLE_CREDENTIAL_KEY_PATH)
     file = gc.open(filename)
     sheet = file.worksheet(sheetname)
-
     try:
-        return sheet.get_all_records() # dict
+        return sheet.get_all_records()  # dict
     # if calling dict, gspread.exceptions.GSpreadException: the given 'expected_headers' are not uniques
     except gspread.exceptions.GSpreadException:
         # TODO: add key, value index in variable
-        return _encode_list2dict(data_list = sheet.get_all_values()) 
+        return _encode_list2dict(data_list=sheet.get_all_values())
 
 
 def save_data(filename: str, data):
@@ -141,16 +144,20 @@ def convert_pickle2json(file: str):
     del json_obj, file_json
 
 
-def pairup_str_int(data_list: List[Dict[str, str]], key_dict: Dict[str, int], value_dict: Dict[str, int]) -> List[Dict[int, int]]:
+def pairup_str_int(
+    data_list: List[Dict[str, str]],
+    key_dict: Dict[str, int],
+    value_dict: Dict[str, int],
+) -> List[Dict[int, int]]:
     _data_list = []
     for data in data_list:
         data_int = {}
         for key_str, val_str in data.items():
-            key_int = key_dict[key_str] # question id
+            key_int = key_dict[key_str]  # question id
             if isinstance(val_str, list):
                 val_int = [value_dict[key_int][ans] for ans in val_str]
             else:
-                val_int = value_dict[key_int][val_str]
+                val_int = value_dict[key_int][str(val_str)]
             data_int[key_int] = val_int
         _data_list.append(data_int)
     return _data_list
@@ -158,7 +165,7 @@ def pairup_str_int(data_list: List[Dict[str, str]], key_dict: Dict[str, int], va
 
 def extract_index_key_value(data_list: List[Dict[str, str]]) -> Tuple[dict, dict]:
     key_list = list(data_list[0].keys())
-    key_dict = {key: id_key for id_key, key in enumerate(key_list)}
+    key_dict = {str(key): id_key for id_key, key in enumerate(key_list)}
 
     value_list = []
     for data in data_list:
@@ -179,6 +186,10 @@ def extract_index_key_value(data_list: List[Dict[str, str]]) -> Tuple[dict, dict
 
     value_dict = {}
     for qid, value in enumerate(value_list):
-        value_dict[qid] = {val: id_val + 1 for id_val, val in enumerate(value)}
+        value_dict[qid] = {str(val): id_val for id_val, val in enumerate(value)}
+
+        for val in value:
+            if "," in val:
+                print(val)
 
     return key_dict, value_dict
